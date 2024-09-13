@@ -1,5 +1,3 @@
-Let's delve into the specific parts of your code to clarify how they work, especially focusing on bitwise operations and the I2C communication with your 4x14 segment display.
-
 ### **1. Understanding the Bitwise Operations**
 
 #### **a. Setting the Decimal Point (DP) Bit**
