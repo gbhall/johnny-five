@@ -114,7 +114,7 @@ board.on('ready', function() {
   }
 
   // Example usage: Write "A1B2" to the display with DPs on '1' and '2'
-  // writeText.call(this, "A1B2", [true, true, false, false]);
+  // writeText.call(this, "A1B2", [true, false, true, false]);
 
   // Alternatively, using writeCharacter for individual control:
   writeCharacter.call(this, 'A', 0, false);  // First digit (position 0), DP off
