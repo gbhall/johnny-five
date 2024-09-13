@@ -41,7 +41,7 @@ board.on('ready', function() {
 
     // Each display uses two bytes: [Lower Byte, Upper Byte]
     const data = [
-      position * 2,                // Address for the digit
+      position * 2,                // Address for the digit (each character position on the display is controlled by two consecutive registers)
       finalBitmap & 0xFF,          // Lower byte
       (finalBitmap >> 8) & 0xFF    // Upper byte
     ];
