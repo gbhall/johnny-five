@@ -9,7 +9,7 @@
  * When displaying a character, the code looks up the bitmask by using the character's ASCII code as 
  * the index in this array.
  * 
- *  Adapted from https://github.com/louiemontes/node-led/blob/master/alphaChars.js
+ *  Adapted from https://github.com/louiemontes/node-led/blob/master/alphaChars.js and https://github.com/adafruit/Adafruit_LED_Backpack/blob/master/Adafruit_LEDBackpack.cpp
  */
 
 module.exports = [

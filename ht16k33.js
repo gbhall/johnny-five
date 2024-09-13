@@ -1,5 +1,6 @@
 const five = require('johnny-five');
 const board = new five.Board();
+AlphaNum4 = require('node-led').AlphaNum4;
 
 board.on('ready', function() {
   const address = 0x70;  // HT16K33 I2C address
@@ -8,10 +9,19 @@ board.on('ready', function() {
   this.i2cConfig();
   this.i2cWrite(address, [0x21]);  // Turn on the oscillator
   this.i2cWrite(address, [0x81]);  // Turn on display, no blinking
-  this.i2cWrite(address, [0xE0 | 0x0F]);  // Set brightness to max (0x0 to 0xF)
+  this.i2cWrite(address, [0xEF]);  // Set brightness to max (0x0 to 0xF)
 
-  // Clear the display
-  this.i2cWrite(address, [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+  // Illuminate the decimal points on all four displays
+  // Construct the buffer with starting address followed by display data
+  const dpBuffer = [
+    0x00,       // Starting address for display RAM
+    0x00, 0x40, // Display 1: All segments off, DP on
+    0x00, 0x40, // Display 2: All segments off, DP on
+    0x00, 0x40, // Display 3: All segments off, DP on
+    0x00, 0x40  // Display 4: All segments off, DP on
+  ];
+
+  this.i2cWrite(address, dpBuffer); // Write the buffer to the display
 
   // Character mappings for 14-segment display
   const alphaChars = {

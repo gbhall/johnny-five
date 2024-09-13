@@ -3,6 +3,7 @@
     "chalk": "^4.1.2",
     "firebase-admin": "^12.4.0",
     "johnny-five": "^2.1.0",
+    "node-led": "^0.3.1",
     "serialport": "^9.2.8"
   }
 }
