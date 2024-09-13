@@ -15,7 +15,10 @@ const board = new five.Board();
 const userCount = {};
 
 board.on("ready", async function() {
+  // Firebase
   const db = getFirestore();
+
+  // Arduino
   var led = new five.Led(13);
 
   // Listening for the latest response in all user documents
