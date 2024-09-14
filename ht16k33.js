@@ -8,24 +8,30 @@ board.on('ready', function () {
   // Initialize the I2C communication with the HT16K33
   this.i2cConfig();
   this.i2cWrite(address, [0x21]);  // Turn on the oscillator
-  setBlinkRate.call(this, HT16K33.BLINK_2HZ);  // Turn on display and set blink rate
+  setBlinkRate.call(this, HT16K33.BLINK_OFF);  // Turn on display and set blink rate
   this.i2cWrite(address, [0xEF]);  // Set brightness (0 to F or 0 to 15). 0 is the lowest brightness and 15 is the highest brightness
 
   /**
    * Initializing the Decimal Points (DP) on all four displays.
    * This buffer sets all segments off except for the DP.
-   * Each character position uses two registers: one for standard segments and one for additional segments (like DP).
+   * Each character position uses two registers: one for the lower half (high byte) and one for the upper half (low byte).
+   * Ordered as [low byte, high byte].
+   * Low byte: the least significant 8 bits (the rightmost 8 bits).
+   * High byte: the most significant 8 bits (the leftmost 8 bits).
+   * AKA Little-Endian.
    */
   const dpBuffer = [
     0x00,       // Starting register address
-    0x00, 0x40, // Display 0: All segments off, DP on
+    0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. But ic2 needs it as a high and low byte. 
     0x00, 0x40, // Display 1: All segments off, DP on
     0x00, 0x40, // Display 2: All segments off, DP on
-    0x00, 0x40  // Display 3: All segments off, DP on
+    0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. 
   ];
 
   // Write the DP buffer to the display to initialize DPs
   this.i2cWrite(address, dpBuffer); // Sends the entire buffer in one I2C transaction
+
+  return
 
   /**
    * Function to set the blink rate of the display
@@ -42,6 +48,21 @@ board.on('ready', function () {
 
     this.i2cWrite(address, [blinkCommand]);
   }
+
+  /**
+   * Function to set the brightness of the display
+   * @param {number} level - Brightness level (0 to 15)
+   */
+  function setBrightness(level) {
+    // Ensure brightness level is within bounds
+    if (level < 0) level = 0;
+    if (level > 15) level = 15;
+
+    const brightnessCommand = 0xE0 | level; // HT16K33 brightness command
+    console.log(`Setting brightness to level ${level}:`, [brightnessCommand]);
+
+    this.i2cWrite(address, [brightnessCommand]);
+  }  
 
   /**
    * Function to get the bitmap index based on ASCII value
