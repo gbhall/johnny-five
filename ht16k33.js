@@ -222,7 +222,7 @@ board.on('ready', function () {
   }
 
   // Start scrolling "HELLO"
-  scrollText.call(this, "HELLO", 300);
+  // scrollText.call(this, "HELLO", 300);
 
   // Optional: Clear the display after a delay (e.g., 5 seconds)
   /*
