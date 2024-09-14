@@ -21,9 +21,9 @@ board.on('ready', function () {
    * AKA Little-Endian.
    */
   const dpBuffer = [
-    0x00,       // Starting register address
+    0x00,       // Starting register address. (0, 2, 4, or 6)
     0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. low byte: 00, high byte: 40 
-    0x00, 0x40, // Display 1: All segments off, DP on
+    0b11111111, 0b01111111, // Display 1: All segments on. 14 bits representing each segment, and the 15th bit representing DP
     0x00, 0x40, // Display 2: All segments off, DP on
     0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
   ];
