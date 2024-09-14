@@ -127,10 +127,15 @@ board.on('ready', function () {
     ];
 
     // Debugging: Log the data being sent
-    console.log(`Writing to Register ${register}:`, data);
+    console.log(`Writing to Register ${register}:`, data.map(toBinary));
 
     // Write the data to the display via I2C
     this.i2cWrite(address, data);
+  }
+
+  // Function to convert a byte to a binary string with leading zeros
+  function toBinary(byte) {
+    return '0b' + byte.toString(2).padStart(8, '0');
   }
 
   /**
