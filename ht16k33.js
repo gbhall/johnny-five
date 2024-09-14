@@ -24,14 +24,14 @@ board.on('ready', function () {
     0x00,       // Starting register address. (0, 2, 4, or 6)
     0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. low byte: 00, high byte: 40 
     0b11111111, 0b01111111, // Display 1: All segments on. 14 bits representing each segment, and the 15th bit representing DP
-    0x00, 0x40, // Display 2: All segments off, DP on
+    0x00, 0x40, // Display 2: All segments off, DP on. 0x4000 = 01000000 00000000 (15th bit)
     0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
   ];
 
   // Write the DP buffer to the display to initialize DPs
   this.i2cWrite(address, dpBuffer); // Sends the entire buffer in one I2C transaction
 
-  return
+  //return
 
   /**
    * Function to set the blink rate of the display
@@ -100,13 +100,30 @@ board.on('ready', function () {
      *   - Position 3: Register 6 (lower byte) and Register 7 (upper byte)
      *
      * Therefore, the starting register for a given position is `position * 2`.
+     * 
+     * LOWER:
+     * ------
+     * Bitwise AND operator example:
+     *   0100 0001 1110 0111 (example)
+     * & 0000 0000 1111 1111 (control)
+     * ------------------------
+     *   0000 0000 1110 0111 (result = rightmost 8 bits)
+     * 
+     * UPPER:
+     * ------
+     * Right Shift by 8 Bits example:
+     *     0100 0001 1110 0111 (example)
+     * >>8 0000 0000 0100 0001 (shifted)
+     *   & 0000 0000 1111 1111 (control)
+     * ------------------------
+     *     0000 0000 0100 0001 (result = leftmost 8 bits)
      */
     const register = position * 2; // Calculates the starting register address
 
     const data = [
-      register,                  // Register address for the character
-      finalBitmap & 0xFF,        // Lower byte: Standard segments
-      (finalBitmap >> 8) & 0xFF  // Upper byte: Additional segments (like DP)
+      register,                        // Register address for the character
+      finalBitmap & 0b11111111,        // Lower byte (rightmost 8 bits): Extracts bits 0-7
+      (finalBitmap >> 8) & 0b11111111  // Upper byte (leftmost 8 bits): Shifts right by 8 bits and extracts bits 8-15
     ];
 
     // Debugging: Log the data being sent
