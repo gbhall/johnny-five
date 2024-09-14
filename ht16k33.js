@@ -27,7 +27,7 @@ board.on('ready', function () {
     0x00, 0x40, // Display 2: All segments off, DP on. 0x4000 = 01000000 00000000 (15th bit)
     0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
   ];
-
+ 
   // Write the DP buffer to the display to initialize DPs
   this.i2cWrite(address, dpBuffer); // Sends the entire buffer in one I2C transaction
 
@@ -166,7 +166,7 @@ board.on('ready', function () {
     });
 
     // Debugging: Log the entire buffer being sent
-    console.log('Writing Text:', output);
+    console.log(`Writing Text '${str}:'`, output.map(toBinary));
 
     // Write the entire buffer to the display in a single I2C transaction
     this.i2cWrite(address, output);
@@ -180,6 +180,49 @@ board.on('ready', function () {
   writeCharacter.call(this, '1', 1, true);   // Second digit (position 1), DP on
   writeCharacter.call(this, 'B', 2, false);  // Third digit (position 2), DP off
   writeCharacter.call(this, '2', 3, true);   // Fourth digit (position 3), DP on
+
+  //writeText.call(this, "GBH", [false, false, false, true]);
+  function scrollText(text, interval = 500, stop = false) {
+    const displayWidth = 4;
+    const paddedText = '    ' + text + '    '; // Padding with spaces so text starts and ends with blanks
+    const totalSteps = displayWidth + text.length; // We don't need to animate the last 4 spaces out of view. Just the last char.
+    let currentStep = 0;
+
+    /*
+      Example: HELLO
+      --------------
+      Step 0: "    "    // All 4 spaces
+      Step 1: "   H"
+      Step 2: "  HE"
+      Step 3: " HEL"
+      Step 4: "HELL"
+      Step 5: "ELLO"
+      Step 6: "LLO "
+      Step 7: "LO  "
+      Step 8: "O   "
+      Step 9: "    "    // All 4 spaces again
+    */
+
+    let reverse = false;
+
+    const scrollInterval = setInterval(() => {
+      if (currentStep <= totalSteps && !reverse) {
+        const slice = paddedText.slice(currentStep, currentStep + displayWidth);
+        // Determine which characters should have the Decimal Point (DP) if desired
+        // For simplicity, no DPs are used here; pass an array of false
+        writeText.call(this, slice, [false, false, false, false]);
+
+        currentStep++;
+      } else {
+        currentStep = 0;
+        if (stop) {
+          clearInterval(scrollInterval); // Stop scrolling after all steps
+        }      }
+    }, interval);
+  }
+
+  // Start scrolling "HELLO"
+  scrollText.call(this, "HELLO", 300);
 
   // Optional: Clear the display after a delay (e.g., 5 seconds)
   /*
