@@ -22,10 +22,10 @@ board.on('ready', function () {
    */
   const dpBuffer = [
     0x00,       // Starting register address
-    0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. But ic2 needs it as a high and low byte. 
+    0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. low byte: 00, high byte: 40 
     0x00, 0x40, // Display 1: All segments off, DP on
     0x00, 0x40, // Display 2: All segments off, DP on
-    0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. 
+    0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
   ];
 
   // Write the DP buffer to the display to initialize DPs
