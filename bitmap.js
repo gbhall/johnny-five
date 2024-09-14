@@ -9,10 +9,57 @@
  * When displaying a character, the code looks up the bitmask by using the character's ASCII code as 
  * the index in this array.
  * 
- *  Adapted from https://github.com/louiemontes/node-led/blob/master/alphaChars.js and https://github.com/adafruit/Adafruit_LED_Backpack/blob/master/Adafruit_LEDBackpack.cpp
+ *  Adapted from https://github.com/adafruit/Adafruit_LED_Backpack/blob/master/Adafruit_LEDBackpack.cpp
  */
 
-module.exports = [
+const HT16K33 = {
+  BLINK_CMD: 0x80,       ///< I2C register for BLINK setting
+  BLINK_DISPLAYON: 0x01, ///< I2C value for steady on
+  BLINK_OFF: 0,          ///< I2C value for steady off
+  BLINK_2HZ: 1,          ///< I2C value for 2 Hz blink
+  BLINK_1HZ: 2,          ///< I2C value for 1 Hz blink
+  BLINK_HALFHZ: 3,       ///< I2C value for 0.5 Hz blink
+  CMD_BRIGHTNESS: 0xE0   ///< I2C register for BRIGHTNESS setting
+};
+
+/*
+Segment names for 14-segment alphanumeric displays.
+See https://learn.adafruit.com/14-segment-alpha-numeric-led-featherwing/usage
+
+    -------A-------
+    |\     |     /|
+    | \    J    / |
+    |   H  |  K   |
+    F    \ | /    B
+    |     \|/     |
+    |--G1--|--G2--|
+    |     /|\     |
+    E    / | \    C
+    |   L  |   N  |
+    | /    M    \ |
+    |/     |     \|
+    -------D-------  DP
+*/
+
+const ALPHANUM_SEGMENTS = {
+  A: 0b0000000000000001,  ///< Alphanumeric segment A
+  B: 0b0000000000000010,  ///< Alphanumeric segment B
+  C: 0b0000000000000100,  ///< Alphanumeric segment C
+  D: 0b0000000000001000,  ///< Alphanumeric segment D
+  E: 0b0000000000010000,  ///< Alphanumeric segment E
+  F: 0b0000000000100000,  ///< Alphanumeric segment F
+  G1: 0b0000000001000000, ///< Alphanumeric segment G1
+  G2: 0b0000000010000000, ///< Alphanumeric segment G2
+  H: 0b0000000100000000,  ///< Alphanumeric segment H
+  J: 0b0000001000000000,  ///< Alphanumeric segment J
+  K: 0b0000010000000000,  ///< Alphanumeric segment K
+  L: 0b0000100000000000,  ///< Alphanumeric segment L
+  M: 0b0001000000000000,  ///< Alphanumeric segment M
+  N: 0b0010000000000000,  ///< Alphanumeric segment N
+  DP: 0b0100000000000000  ///< Alphanumeric segment DP
+};
+
+const bitmaps = [
   0b0000000000000001, // 0
   0b0000000000000010, // 1
   0b0000000000000100, // 2
@@ -142,3 +189,10 @@ module.exports = [
   0b0000010100100000, // 126 '~'
   0b0011111111111111  // 127 'DEL'
 ];
+
+// Export all the constants
+module.exports = {
+  bitmaps,
+  HT16K33,
+  ALPHANUM_SEGMENTS
+};

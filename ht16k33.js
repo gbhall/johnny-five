@@ -1,15 +1,15 @@
 const five = require('johnny-five');
 const board = new five.Board();
-const bitmaps = require('./bitmap.js'); // Import the bitmap array
+const { bitmaps, HT16K33, SEGMENTS } = require('./bitmap.js'); // Import all exports
 
-board.on('ready', function() {
+board.on('ready', function () {
   const address = 0x70;  // HT16K33 I2C address
 
   // Initialize the I2C communication with the HT16K33
   this.i2cConfig();
   this.i2cWrite(address, [0x21]);  // Turn on the oscillator
-  this.i2cWrite(address, [0x81]);  // Turn on display, no blinking
-  this.i2cWrite(address, [0xEF]);  // Set brightness to max (0x0 to 0xF)
+  setBlinkRate.call(this, HT16K33.BLINK_2HZ);  // Turn on display and set blink rate
+  this.i2cWrite(address, [0xEF]);  // Set brightness (0 to F or 0 to 15). 0 is the lowest brightness and 15 is the highest brightness
 
   /**
    * Initializing the Decimal Points (DP) on all four displays.
@@ -26,6 +26,22 @@ board.on('ready', function() {
 
   // Write the DP buffer to the display to initialize DPs
   this.i2cWrite(address, dpBuffer); // Sends the entire buffer in one I2C transaction
+
+  /**
+   * Function to set the blink rate of the display
+   * @param {number} rate - Blink rate (0: no blink, 1: 2Hz, 2: 1Hz, 3: 0.5Hz)
+   */
+  function setBlinkRate(rate) {
+    // Ensure blink rate is within bounds
+    if (rate < 0 || rate > 3) rate = 0; // Default to off if out of range
+
+    const blinkBits = rate << 1; // Shift rate to bits 1 and 2
+
+    const blinkCommand = HT16K33.BLINK_CMD | HT16K33.BLINK_DISPLAYON | blinkBits;
+    console.log(`Setting blink rate to ${rate}:`, [blinkCommand]);
+
+    this.i2cWrite(address, [blinkCommand]);
+  }
 
   /**
    * Function to get the bitmap index based on ASCII value
@@ -89,7 +105,7 @@ board.on('ready', function() {
     const paddedStr = str.padEnd(4, ' ').substring(0, 4);
 
     // Convert each character to its corresponding bitmap, setting DP if required
-    const desiredBits = paddedStr.split('').map(function(c, idx){
+    const desiredBits = paddedStr.split('').map(function (c, idx) {
       let bitmap = bitmaps[getBitmapIndex(c)] || 0x0000; // Get bitmap or default to 'DEL'
       if (dots[idx]) {
         bitmap |= 0x4000; // Set DP bit for this character
@@ -101,7 +117,7 @@ board.on('ready', function() {
     const output = [0x00]; // Starting register address
 
     // Append lower and upper bytes for each character to the buffer
-    desiredBits.forEach(function(bitmap){
+    desiredBits.forEach(function (bitmap) {
       output.push(bitmap & 0xFF);        // Lower byte: Standard segments
       output.push((bitmap >> 8) & 0xFF); // Upper byte: Additional segments (like DP)
     });
