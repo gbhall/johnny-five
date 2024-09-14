@@ -5,5 +5,11 @@
     "johnny-five": "^2.1.0",
     "node-led": "^0.3.1",
     "serialport": "^9.2.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },  
+  "scripts": {
+    "start": "nodemon ht16k33.js" 
   }
 }

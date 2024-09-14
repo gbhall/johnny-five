@@ -44,7 +44,7 @@ board.on('ready', function () {
     const blinkBits = rate << 1; // Shift rate to bits 1 and 2
 
     const blinkCommand = HT16K33.BLINK_CMD | HT16K33.BLINK_DISPLAYON | blinkBits;
-    console.log(`Setting blink rate to ${rate}:`, [blinkCommand]);
+    console.log(`Setting blink rate to ${rate}:`, [blinkCommand].map(toBinary));
 
     this.i2cWrite(address, [blinkCommand]);
   }
