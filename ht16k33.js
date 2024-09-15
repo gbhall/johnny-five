@@ -218,10 +218,17 @@ board.on('ready', function () {
           clearInterval(scrollInterval); // Stop scrolling after all steps
         }      }
     }, interval);
+
+    return scrollInterval; // Return the Interval ID
   }
 
   // Start scrolling "HELLO"
-  scrollText.call(this, "HELLO", 280, [false, false, false, false, true]);
+  const fastScroll = scrollText.call(this, "HELLO", 5, [false, false, false, false, true]); // Use at least 5ms to not overload and flood the I2C queue
+  setTimeout(() => {
+    clearInterval(fastScroll); // Stop the fast scrolling instance
+    text = "GREETINGS PROFESSOR GARETH";
+    scrollText.call(this, text, 200, [...Array(text.length - 1).fill(false), true]);
+  }, 5000);
 
   // Optional: Clear the display after a delay (e.g., 5 seconds)
   /*
