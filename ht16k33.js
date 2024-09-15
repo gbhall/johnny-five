@@ -185,9 +185,9 @@ board.on('ready', function () {
   function scrollText(text, interval = 500, dots = [], stop = false) {
     const displayWidth = 4;
     const paddedText = '    ' + text + '    '; // Padding with spaces so text starts and ends with blanks
-    const totalSteps = displayWidth + text.length; // We don't need to animate the last 4 spaces out of view. Just the last char.
     const paddedDots = [false, false, false, false, ...dots, false, false, false, false];
     let currentStep = 0;
+    const totalSteps = displayWidth + text.length; // We don't need to animate the last 4 spaces out of view. Just the last char.
 
     /*
       Example: HELLO
@@ -204,10 +204,8 @@ board.on('ready', function () {
       Step 9: "    "    // All 4 spaces again
     */
 
-    let reverse = false;
-
     const scrollInterval = setInterval(() => {
-      if (currentStep <= totalSteps && !reverse) {
+      if (currentStep <= totalSteps) {
         const textSlice = paddedText.slice(currentStep, currentStep + displayWidth);
         const dotsSlice = paddedDots.slice(currentStep, currentStep + displayWidth);
         // Write the text and dots
