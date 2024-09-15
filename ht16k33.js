@@ -182,10 +182,11 @@ board.on('ready', function () {
   writeCharacter.call(this, '2', 3, true);   // Fourth digit (position 3), DP on
 
   //writeText.call(this, "GBH", [false, false, false, true]);
-  function scrollText(text, interval = 500, stop = false) {
+  function scrollText(text, interval = 500, dots = [], stop = false) {
     const displayWidth = 4;
     const paddedText = '    ' + text + '    '; // Padding with spaces so text starts and ends with blanks
     const totalSteps = displayWidth + text.length; // We don't need to animate the last 4 spaces out of view. Just the last char.
+    const paddedDots = [false, false, false, false, ...dots, false, false, false, false];
     let currentStep = 0;
 
     /*
@@ -207,10 +208,10 @@ board.on('ready', function () {
 
     const scrollInterval = setInterval(() => {
       if (currentStep <= totalSteps && !reverse) {
-        const slice = paddedText.slice(currentStep, currentStep + displayWidth);
-        // Determine which characters should have the Decimal Point (DP) if desired
-        // For simplicity, no DPs are used here; pass an array of false
-        writeText.call(this, slice, [false, false, false, false]);
+        const textSlice = paddedText.slice(currentStep, currentStep + displayWidth);
+        const dotsSlice = paddedDots.slice(currentStep, currentStep + displayWidth);
+        // Write the text and dots
+        writeText.call(this, textSlice, dotsSlice);
 
         currentStep++;
       } else {
@@ -222,7 +223,7 @@ board.on('ready', function () {
   }
 
   // Start scrolling "HELLO"
-  // scrollText.call(this, "HELLO", 300);
+  scrollText.call(this, "HELLO", 280, [false, false, false, false, true]);
 
   // Optional: Clear the display after a delay (e.g., 5 seconds)
   /*
