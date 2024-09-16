@@ -243,11 +243,12 @@ board.on('ready', function () {
 
   const instance = this;
   photoresitor.on("data", function () {
-    console.log(`${this.value}`);
-    writeText.call(instance, `${this.value}`.padStart(4 , ' '), [false, false, false, false]);
+    const level = this.value;
+    console.log(level);
+    writeText.call(instance, `${level}`.padStart(4 , ' '), [false, false, false, false]);
 
     // Set brightness depending on threshold
-    if (this.value > 900) {
+    if (level > 900) {
       setBrightness.call(instance, 0);
     } else {
       setBrightness.call(instance, 15);
