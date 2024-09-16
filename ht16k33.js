@@ -27,7 +27,7 @@ board.on('ready', function () {
     0x00, 0x40, // Display 2: All segments off, DP on. 0x4000 = 01000000 00000000 (15th bit)
     0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
   ];
- 
+
   // Write the DP buffer to the display to initialize DPs
   this.i2cWrite(address, dpBuffer); // Sends the entire buffer in one I2C transaction
 
@@ -62,7 +62,7 @@ board.on('ready', function () {
     console.log(`Setting brightness to level ${level}:`, [brightnessCommand]);
 
     this.i2cWrite(address, [brightnessCommand]);
-  }  
+  }
 
   /**
    * Function to get the bitmap index based on ASCII value
@@ -173,13 +173,13 @@ board.on('ready', function () {
   }
 
   // Example usage: Write "A1B2" to the display with DPs on '1' and '2'
-  // writeText.call(this, "A1B2", [true, false, true, false]);
+  writeText.call(this, "A3B2", [true, false, true, false]);
 
   // Alternatively, using writeCharacter for individual control:
-  writeCharacter.call(this, 'A', 0, false);  // First digit (position 0), DP off
-  writeCharacter.call(this, '1', 1, true);   // Second digit (position 1), DP on
-  writeCharacter.call(this, 'B', 2, false);  // Third digit (position 2), DP off
-  writeCharacter.call(this, '2', 3, true);   // Fourth digit (position 3), DP on
+  // writeCharacter.call(this, 'A', 0, false);  // First digit (position 0), DP off
+  // writeCharacter.call(this, '1', 1, true);   // Second digit (position 1), DP on
+  // writeCharacter.call(this, 'B', 2, false);  // Third digit (position 2), DP off
+  // writeCharacter.call(this, '2', 3, true);   // Fourth digit (position 3), DP on
 
   //writeText.call(this, "GBH", [false, false, false, true]);
   function scrollText(text, interval = 500, dots = [], stop = false) {
@@ -216,19 +216,43 @@ board.on('ready', function () {
         currentStep = 0;
         if (stop) {
           clearInterval(scrollInterval); // Stop scrolling after all steps
-        }      }
+        }
+      }
     }, interval);
 
     return scrollInterval; // Return the Interval ID
   }
 
   // Start scrolling "HELLO"
-  const fastScroll = scrollText.call(this, "HELLO", 5, [false, false, false, false, true]); // Use at least 5ms to not overload and flood the I2C queue
-  setTimeout(() => {
-    clearInterval(fastScroll); // Stop the fast scrolling instance
-    text = "GREETINGS PROFESSOR GARETH";
-    scrollText.call(this, text, 200, [...Array(text.length - 1).fill(false), true]);
-  }, 5000);
+  // const fastScroll = scrollText.call(this, "ABCDEFGIJKLMNOPQRSTUVWXYZ1234567890", 5, [true, false]); // Use at least 5ms to not overload and flood the I2C queue
+  // setTimeout(() => {
+  //   clearInterval(fastScroll); // Stop the fast scrolling instance
+  //   text = "GREETINGS PROFESSOR GARETH";
+  //   scrollText.call(this, text, 200, [...Array(text.length - 1).fill(false), true]);
+  // }, 5000);
+
+  // Monitor photoresitor levels
+  photoresitor = new five.Sensor({
+    pin: "A0",
+    freq: 250
+  });
+
+  board.repl.inject({
+    pot: photoresitor
+  });
+
+  const instance = this;
+  photoresitor.on("data", function () {
+    console.log(`${this.value}`);
+    writeText.call(instance, `${this.value}`.padStart(4 , ' '), [false, false, false, false]);
+
+    // Set brightness depending on threshold
+    if (this.value > 900) {
+      setBrightness.call(instance, 0);
+    } else {
+      setBrightness.call(instance, 15);
+    }
+  });
 
   // Optional: Clear the display after a delay (e.g., 5 seconds)
   /*
