@@ -19,7 +19,7 @@ const HT16K33 = {
   BLINK_2HZ: 1,          ///< I2C value for 2 Hz blink
   BLINK_1HZ: 2,          ///< I2C value for 1 Hz blink
   BLINK_HALFHZ: 3,       ///< I2C value for 0.5 Hz blink
-  CMD_BRIGHTNESS: 0xE0   ///< I2C register for BRIGHTNESS setting
+  BRIGHTNESS_CMD: 0xE0   ///< I2C register for BRIGHTNESS setting
 };
 
 /*

@@ -58,8 +58,8 @@ board.on('ready', function () {
     if (level < 0) level = 0;
     if (level > 15) level = 15;
 
-    const brightnessCommand = 0xE0 | level; // HT16K33 brightness command
-    console.log(`Setting brightness to level ${level}:`, [brightnessCommand]);
+    const brightnessCommand = HT16K33.BRIGHTNESS_CMD | level; // HT16K33 brightness command
+    console.log(`Setting brightness to level ${level}:`, [brightnessCommand].map(toBinary));
 
     this.i2cWrite(address, [brightnessCommand]);
   }
