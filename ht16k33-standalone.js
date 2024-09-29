@@ -1,80 +1,67 @@
-const { bitmaps, HT16K33, ALPHANUM_SEGMENTS } = require('./bitmap.js'); // Import all exports
+const five = require('johnny-five');
+const board = new five.Board();
+const { bitmaps, HT16K33, SEGMENTS } = require('./bitmap.js'); // Import all exports
 
-/**
- * HT16K33Display Class
- *
- * This class encapsulates all functionalities required to control the HT16K33 Quad 14 Segment Alphanumeric Display Module.
- * It provides methods to initialize the display, set blink rates, adjust brightness, write characters or text, and scroll text.
- */
-class HT16K33Display {
+board.on('ready', function () {
+  const address = 0x70;  // HT16K33 I2C address
+
+  // Initialize the I2C communication with the HT16K33
+  this.i2cConfig();
+  this.i2cWrite(address, [0x21]);  // Turn on the oscillator
+  setBlinkRate.call(this, HT16K33.BLINK_OFF);  // Turn on display and set blink rate
+  this.i2cWrite(address, [0xEF]);  // Set brightness (0 to F or 0 to 15). 0 is the lowest brightness and 15 is the highest brightness
+
   /**
-   * Creates an instance of HT16K33Display.
-   * @param {object} board - The Johnny-Five board instance.
-   * @param {number} [address=0x70] - The I2C address of the HT16K33 display.
+   * Initializing the Decimal Points (DP) on all four displays.
+   * This buffer sets all segments off except for the DP.
+   * Each character position uses two registers: one for the lower half (high byte) and one for the upper half (low byte).
+   * Ordered as [low byte, high byte].
+   * Low byte: the least significant 8 bits (the rightmost 8 bits).
+   * High byte: the most significant 8 bits (the leftmost 8 bits).
+   * AKA Little-Endian.
    */
-  constructor(board, address = 0x70) {
-    if (!board) {
-      throw new Error('A Johnny-Five board instance is required.');
-    }
-    this.board = board;
-    this.address = address; // HT16K33 I2C address
+  const dpBuffer = [
+    0x00,       // Starting register address. (0, 2, 4, or 6)
+    0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. low byte: 00, high byte: 40 
+    0b11111111, 0b01111111, // Display 1: All segments on. 14 bits representing each segment, and the 15th bit representing DP
+    0x00, 0x40, // Display 2: All segments off, DP on. 0x4000 = 01000000 00000000 (15th bit)
+    0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
+  ];
 
-    // Initialize the I2C communication with the HT16K33
-    this.board.i2cConfig();
-    this.board.i2cWrite(this.address, [0x21]); // Turn on the oscillator
-    this.setBlinkRate(HT16K33.BLINK_OFF);      // Turn on display and set blink rate
-    this.board.i2cWrite(this.address, [0xEF]); // Set brightness (0 to F or 0 to 15). 0 is the lowest brightness and 15 is the highest brightness
+  // Write the DP buffer to the display to initialize DPs
+  this.i2cWrite(address, dpBuffer); // Sends the entire buffer in one I2C transaction
 
-    /**
-     * Initializing the Decimal Points (DP) on all four displays.
-     * This buffer sets all segments off except for the DP.
-     * Each character position uses two registers: one for the lower half (high byte) and one for the upper half (low byte).
-     * Ordered as [low byte, high byte].
-     * Low byte: the least significant 8 bits (the rightmost 8 bits).
-     * High byte: the most significant 8 bits (the leftmost 8 bits).
-     * AKA Little-Endian.
-     */
-    const dpBuffer = [
-      0x00,       // Starting register address. (0, 2, 4, or 6)
-      0x00, 0x40, // Display 0: All segments off, DP on. DP of 0b0100000000000000 is 0x4000. low byte: 00, high byte: 40 
-      0b11111111, 0b01111111, // Display 1: All segments on. 14 bits representing each segment, and the 15th bit representing DP
-      0x00, 0x40, // Display 2: All segments off, DP on. 0x4000 = 01000000 00000000 (15th bit)
-      0xF7, 0x00  // Display 3: Letter A. A is 0b0000000011110111 which equals 0x00F7. low byte: F7, high byte: 00 
-    ];
-
-    // Write the DP buffer to the display to initialize DPs
-    this.board.i2cWrite(this.address, dpBuffer); // Sends the entire buffer in one I2C transaction
-  }
+  //return
 
   /**
    * Function to set the blink rate of the display
    * @param {number} rate - Blink rate (0: no blink, 1: 2Hz, 2: 1Hz, 3: 0.5Hz)
    */
-  setBlinkRate(rate) {
+  function setBlinkRate(rate) {
     // Ensure blink rate is within bounds
     if (rate < 0 || rate > 3) rate = 0; // Default to off if out of range
 
     const blinkBits = rate << 1; // Shift rate to bits 1 and 2
 
     const blinkCommand = HT16K33.BLINK_CMD | HT16K33.BLINK_DISPLAYON | blinkBits;
-    console.log(`Setting blink rate to ${rate}:`, [blinkCommand].map(this.toBinary));
+    console.log(`Setting blink rate to ${rate}:`, [blinkCommand].map(toBinary));
 
-    this.board.i2cWrite(this.address, [blinkCommand]);
+    this.i2cWrite(address, [blinkCommand]);
   }
 
   /**
    * Function to set the brightness of the display
    * @param {number} level - Brightness level (0 to 15)
    */
-  setBrightness(level) {
+  function setBrightness(level) {
     // Ensure brightness level is within bounds
     if (level < 0) level = 0;
     if (level > 15) level = 15;
 
     const brightnessCommand = HT16K33.BRIGHTNESS_CMD | level; // HT16K33 brightness command
-    console.log(`Setting brightness to level ${level}:`, [brightnessCommand].map(this.toBinary));
+    console.log(`Setting brightness to level ${level}:`, [brightnessCommand].map(toBinary));
 
-    this.board.i2cWrite(this.address, [brightnessCommand]);
+    this.i2cWrite(address, [brightnessCommand]);
   }
 
   /**
@@ -82,7 +69,7 @@ class HT16K33Display {
    * @param {char} char - The character to display
    * @returns {number} - The corresponding bitmap index
    */
-  getBitmapIndex(char) {
+  function getBitmapIndex(char) {
     const ascii = char.charCodeAt(0);
     if (ascii < 0 || ascii > 127) {
       return 127; // Use 'DEL' for unsupported characters
@@ -96,8 +83,8 @@ class HT16K33Display {
    * @param {number} position - The display position (0 to 3)
    * @param {boolean} dot - Whether to illuminate the DP
    */
-  writeCharacter(char, position, dot = false) {
-    const index = this.getBitmapIndex(char);
+  function writeCharacter(char, position, dot = false) {
+    const index = getBitmapIndex(char);
     const bitmap = bitmaps[index] || 0x0000; // Default to 'DEL' if undefined
 
     // If dot is true, set the DP bit (assuming DP is the 15th bit)
@@ -140,14 +127,14 @@ class HT16K33Display {
     ];
 
     // Debugging: Log the data being sent
-    console.log(`Writing to Register ${register}:`, data.map(this.toBinary));
+    console.log(`Writing to Register ${register}:`, data.map(toBinary));
 
     // Write the data to the display via I2C
-    this.board.i2cWrite(this.address, data);
+    this.i2cWrite(address, data);
   }
 
   // Function to convert a byte to a binary string with leading zeros
-  toBinary(byte) {
+  function toBinary(byte) {
     return '0b' + byte.toString(2).padStart(8, '0');
   }
 
@@ -156,18 +143,18 @@ class HT16K33Display {
    * @param {string} str - The string to display (max 4 characters)
    * @param {Array<boolean>} dots - Array indicating which characters have DPs (e.g., [false, true, false, true])
    */
-  writeText(str, dots = []) {
+  function writeText(str, dots = []) {
     // Ensure the string has exactly 4 characters by padding with spaces or trimming
     const paddedStr = str.padEnd(4, ' ').substring(0, 4);
 
     // Convert each character to its corresponding bitmap, setting DP if required
     const desiredBits = paddedStr.split('').map(function (c, idx) {
-      let bitmap = bitmaps[this.getBitmapIndex(c)] || 0x0000; // Get bitmap or default to 'DEL'
+      let bitmap = bitmaps[getBitmapIndex(c)] || 0x0000; // Get bitmap or default to 'DEL'
       if (dots[idx]) {
         bitmap |= 0x4000; // Set DP bit for this character
       }
       return bitmap;
-    }, this); // Bind 'this' to access class methods
+    });
 
     // Prepare the output buffer starting with the initial register address (0x00)
     const output = [0x00]; // Starting register address
@@ -179,21 +166,23 @@ class HT16K33Display {
     });
 
     // Debugging: Log the entire buffer being sent
-    console.log(`Writing Text '${str}:'`, output.map(this.toBinary));
+    console.log(`Writing Text '${str}:'`, output.map(toBinary));
 
     // Write the entire buffer to the display in a single I2C transaction
-    this.board.i2cWrite(this.address, output);
+    this.i2cWrite(address, output);
   }
 
-  /**
-   * Function to scroll text on the display
-   * @param {string} text - The text to scroll
-   * @param {number} [interval=500] - Interval in milliseconds between scroll steps
-   * @param {Array<boolean>} [dots=[]] - Array indicating which characters have DPs
-   * @param {boolean} [stop=false] - Whether to stop scrolling after one complete cycle
-   * @returns {object} - The Interval ID for the scrolling process
-   */
-  scrollText(text, interval = 500, dots = [], stop = false) {
+  // Example usage: Write "A1B2" to the display with DPs on '1' and '2'
+  writeText.call(this, "A3B2", [true, false, true, false]);
+
+  // Alternatively, using writeCharacter for individual control:
+  // writeCharacter.call(this, 'A', 0, false);  // First digit (position 0), DP off
+  // writeCharacter.call(this, '1', 1, true);   // Second digit (position 1), DP on
+  // writeCharacter.call(this, 'B', 2, false);  // Third digit (position 2), DP off
+  // writeCharacter.call(this, '2', 3, true);   // Fourth digit (position 3), DP on
+
+  //writeText.call(this, "GBH", [false, false, false, true]);
+  function scrollText(text, interval = 500, dots = [], stop = false) {
     const displayWidth = 4;
     const paddedText = '    ' + text + '    '; // Padding with spaces so text starts and ends with blanks
     const paddedDots = [false, false, false, false, ...dots, false, false, false, false];
@@ -220,7 +209,7 @@ class HT16K33Display {
         const textSlice = paddedText.slice(currentStep, currentStep + displayWidth);
         const dotsSlice = paddedDots.slice(currentStep, currentStep + displayWidth);
         // Write the text and dots
-        this.writeText(textSlice, dotsSlice);
+        writeText.call(this, textSlice, dotsSlice);
 
         currentStep++;
       } else {
@@ -234,12 +223,41 @@ class HT16K33Display {
     return scrollInterval; // Return the Interval ID
   }
 
-  /**
-   * Function to clear the display
-   */
-  clearDisplay() {
-    const address = this.address; // HT16K33 I2C address
+  // Start scrolling "HELLO"
+  // const fastScroll = scrollText.call(this, "ABCDEFGIJKLMNOPQRSTUVWXYZ1234567890", 5, [true, false]); // Use at least 5ms to not overload and flood the I2C queue
+  // setTimeout(() => {
+  //   clearInterval(fastScroll); // Stop the fast scrolling instance
+  //   text = "GREETINGS PROFESSOR GARETH";
+  //   scrollText.call(this, text, 200, [...Array(text.length - 1).fill(false), true]);
+  // }, 5000);
 
+  // Monitor photoresitor levels
+  photoresitor = new five.Sensor({
+    pin: "A0",
+    freq: 250
+  });
+
+  board.repl.inject({
+    pot: photoresitor
+  });
+
+  const instance = this;
+  photoresitor.on("data", function () {
+    const level = this.value;
+    console.log(level);
+    writeText.call(instance, `${level}`.padStart(4 , ' '), [false, false, false, false]);
+
+    // Set brightness depending on threshold
+    if (level > 900) {
+      setBrightness.call(instance, 0);
+    } else {
+      setBrightness.call(instance, 15);
+    }
+  });
+
+  // Optional: Clear the display after a delay (e.g., 5 seconds)
+  /*
+  setTimeout(() => {
     const clearAll = [
       0x00,       // Starting register address
       0x00, 0x00, // Display 0: All segments and DP off
@@ -247,35 +265,8 @@ class HT16K33Display {
       0x04, 0x00, // Display 2: All segments and DP off
       0x06, 0x00  // Display 3: All segments and DP off
     ];
-    this.board.i2cWrite(address, clearAll);
+    this.i2cWrite(address, clearAll);
     console.log('Display Cleared');
-  }
-}
-
-// Export the HT16K33Display class
-module.exports = HT16K33Display;
-
-/**
- * Example usage:
- * Uncomment the following lines to test the module independently.
- * Make sure to comment them out when importing this module elsewhere.
- */
-
-// const five = require('johnny-five');
-// const board = new five.Board();
-
-// board.on('ready', function () {
-//   const display = new HT16K33Display(this);
-
-//   // Example usage: Write "A3B2" to the display with DPs on 'A' and 'B'
-//   display.writeText("A3B2", [true, false, true, false]);
-
-//   // Alternatively, using writeCharacter for individual control:
-//   // display.writeCharacter('A', 0, false);  // First digit (position 0), DP off
-//   // display.writeCharacter('1', 1, true);   // Second digit (position 1), DP on
-//   // display.writeCharacter('B', 2, false);  // Third digit (position 2), DP off
-//   // display.writeCharacter('2', 3, true);   // Fourth digit (position 3), DP on
-
-//   // Start scrolling "HELLO"
-//   // display.scrollText("HELLO", 500, [false, false, false, false], false);
-// });
+  }, 5000); // Clears after 5 seconds
+  */
+});
