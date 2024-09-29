@@ -181,7 +181,7 @@ class HT16K33Display {
     });
 
     // Debugging: Log the entire buffer being sent
-    console.log(`Writing Text '${str}:'`, output.map(this.toBinary));
+    console.log(`Writing Text '${str}':`, output.map(this.toBinary));
 
     // Write the entire buffer to the display in a single I2C transaction
     this.board.i2cWrite(this.address, output);

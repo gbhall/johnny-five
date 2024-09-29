@@ -23,6 +23,12 @@ let totalPosts = 0;
 // Initialize a timeout variable for debouncing totalPosts display
 let totalPostsTimeout = null;
 
+// Initialize a variable to manage the alternation interval
+let alternateInterval = null;
+
+// Flag to track current display state
+let showingTotalPosts = true;
+
 board.on("ready", function () {
   // Firebase
   const db = getFirestore();
@@ -44,7 +50,7 @@ board.on("ready", function () {
     onData: (level) => {
       // Set brightness depending on threshold
       if (level > 1000) {
-        if (display.currentBrightness != 0) { // This just avoids verbose logging, instead of calling the function unnecessarily 
+        if (display.currentBrightness != 0) { // Avoid unnecessary function calls
           display.setBrightness(0);
         }
       } else {
@@ -104,6 +110,13 @@ board.on("ready", function () {
         // Display timesSeen with DP on the fourth digit
         display.writeText(`${timesSeen}`.padStart(4, ' '), [false, false, false, true]);
 
+        // Clear existing alternation interval if active
+        if (alternateInterval) {
+          clearInterval(alternateInterval);
+          alternateInterval = null;
+          showingTotalPosts = true; // Reset flag
+        }
+
         // Debounce the totalPosts display
         // If a timeout is already set, clear it
         if (totalPostsTimeout) {
@@ -112,9 +125,23 @@ board.on("ready", function () {
 
         // Set a new timeout to display totalPosts after 250ms
         totalPostsTimeout = setTimeout(() => {
+          // Display totalPosts without DP
           display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false]);
           totalPostsTimeout = null; // Reset the timeout variable
-        }, 250);
+
+          // Start the alternation interval
+          alternateInterval = setInterval(() => {
+            if (showingTotalPosts) {
+              display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false]);
+            } else {
+              // Calculate total number of unique users
+              const userCountTotal = Object.keys(userCount).length;
+              display.writeText(`U${userCountTotal.toString().padStart(3, ' ')}`, [false, false, false, false]);
+            }
+            // Alternate
+            showingTotalPosts = !showingTotalPosts;
+          }, 1000); // Alternate every 1 second
+        }, 500);
       });
     }, (error) => {
       console.error(chalk.red('Error fetching documents: '), error);
