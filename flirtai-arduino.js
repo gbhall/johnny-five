@@ -1,7 +1,9 @@
 const five = require("johnny-five");
 const admin = require("firebase-admin");
-const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
+const { getFirestore } = require('firebase-admin/firestore');
 const chalk = require('chalk');  // Importing chalk for colored output
+const HT16K33Display = require('./ht16k33'); // Import the display class
+const Photoresistor = require('./photoresistor'); // Import the photoresistor class
 
 const serviceAccount = require("./flirtai-service-firebase-adminsdk-1tszc-f7568c9c13.json");
 
@@ -14,12 +16,40 @@ const board = new five.Board();
 // Object to store how many times each userId has been seen
 const userCount = {};
 
-board.on("ready", async function() {
+board.on("ready", function() {
   // Firebase
   const db = getFirestore();
 
-  // Arduino
-  var led = new five.Led(13);
+  // Arduino Components
+  const led = new five.Led(13);
+
+  // Initialize the HT16K33 Display
+  const display = new HT16K33Display(this);
+
+  // Optionally set initial blink rate and brightness
+  display.setBlinkRate(HT16K33Display.BLINK_OFF); // No blink
+  display.setBrightness(15); // Maximum brightness
+
+  // Initialize total posts counter
+  let totalPosts = 0;
+
+  // Initialize and configure the Photoresistor
+  const photoresistor = new Photoresistor(this, {
+    pin: "A0",
+    freq: 250,
+    onData: (level) => {
+      // Set brightness depending on threshold
+      if (level > 1000) {
+        if (display.currentBrightness != 0) { // This just avoids verbose logging, instead of calling the function unnecessarily 
+          display.setBrightness(0);
+        }
+      } else {
+        if (display.currentBrightness != 15) {
+          display.setBrightness(15);
+        }
+      }
+    }
+  });
 
   // Listening for the latest response in all user documents
   db.collectionGroup('responses')
@@ -45,6 +75,9 @@ board.on("ready", async function() {
           userCount[userId] = 1;
         }
 
+        // Increment total posts
+        totalPosts += 1;
+
         // Get the number of times this userId has been seen
         const timesSeen = userCount[userId];
 
@@ -63,8 +96,20 @@ board.on("ready", async function() {
         setTimeout(() => {
           led.off();
         }, 250);
+
+        // Update the display with the total number of posts
+        // Convert totalPosts to string and pad to 4 characters
+        display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false]);
       });
     }, (error) => {
       console.error(chalk.red('Error fetching documents: '), error);
     });
+
+  // Optional: Handle process exit to clean up resources
+  process.on('SIGINT', () => {
+    console.log('\nGracefully shutting down...');
+    photoresistor.stop();
+    display.clearDisplay();
+    process.exit();
+  });
 });

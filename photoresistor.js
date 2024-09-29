@@ -45,7 +45,7 @@ class Photoresistor {
    * @param {number} value - The sensor reading value.
    */
   handleData(value) {
-    console.log(`Photoresistor Level: ${value}`);
+    //console.log(`Photoresistor Level: ${value}`);
     this.onData(value);
   }
 

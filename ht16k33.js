@@ -18,6 +18,7 @@ class HT16K33Display {
     }
     this.board = board;
     this.address = address; // HT16K33 I2C address
+    this.currentBrightness = 15;
 
     // Initialize the I2C communication with the HT16K33
     this.board.i2cConfig();
@@ -73,6 +74,7 @@ class HT16K33Display {
 
     const brightnessCommand = HT16K33.BRIGHTNESS_CMD | level; // HT16K33 brightness command
     console.log(`Setting brightness to level ${level}:`, [brightnessCommand].map(this.toBinary));
+    this.currentBrightness = level;
 
     this.board.i2cWrite(this.address, [brightnessCommand]);
   }
