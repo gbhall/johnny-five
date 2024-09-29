@@ -34,7 +34,7 @@ board.on("ready", function () {
   const display = new HT16K33Display(this);
 
   // Optionally set initial blink rate and brightness
-  display.setBlinkRate(HT16K33.BLINK_OFF); // No blink
+  display.setBlinkRate(HT16K33Display.BLINK_OFF); // No blink
   display.setBrightness(15); // Maximum brightness
 
   // Initialize and configure the Photoresistor
