@@ -158,7 +158,7 @@ class HT16K33Display {
    * @param {string} str - The string to display (max 4 characters)
    * @param {Array<boolean>} dots - Array indicating which characters have DPs (e.g., [false, true, false, true])
    */
-  writeText(str, dots = []) {
+  writeText(str, dots = [], log = true) {
     // Ensure the string has exactly 4 characters by padding with spaces or trimming
     const paddedStr = str.padEnd(4, ' ').substring(0, 4);
 
@@ -181,7 +181,9 @@ class HT16K33Display {
     });
 
     // Debugging: Log the entire buffer being sent
-    console.log(`Writing Text '${str}':`, output.map(this.toBinary));
+    if (log) {
+      console.log(`Writing Text '${str}':`, output.map(this.toBinary));
+    }
 
     // Write the entire buffer to the display in a single I2C transaction
     this.board.i2cWrite(this.address, output);

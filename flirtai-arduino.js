@@ -132,15 +132,15 @@ board.on("ready", function () {
           // Start the alternation interval
           alternateInterval = setInterval(() => {
             if (showingTotalPosts) {
-              display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false]);
+              display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false], false);
             } else {
               // Calculate total number of unique users
               const userCountTotal = Object.keys(userCount).length;
-              display.writeText(`U${userCountTotal.toString().padStart(3, ' ')}`, [false, false, false, false]);
+              display.writeText(`U${userCountTotal.toString().padStart(3, ' ')}`, [false, false, false, false], false);
             }
             // Alternate
             showingTotalPosts = !showingTotalPosts;
-          }, 1000); // Alternate every 1 second
+          }, 1500); // Alternate every 1 second
         }, 500);
       });
     }, (error) => {
