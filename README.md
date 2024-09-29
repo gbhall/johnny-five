@@ -388,7 +388,3 @@ This project is licensed under the [MIT License](LICENSE).
 **Gareth Blake Hall**
 
 - **GitHub:** [https://github.com/gbhall/](https://github.com/gbhall/)
-
----
-
-**Note:** This README focuses solely on the `ht16k33.js` and `bitmap.js` libraries. For integration with other modules or additional functionalities, refer to their respective documentation or examples.
