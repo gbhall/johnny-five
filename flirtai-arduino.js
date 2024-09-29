@@ -11,12 +11,19 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
+// Initialise board
 const board = new five.Board();
 
 // Object to store how many times each userId has been seen
 const userCount = {};
 
-board.on("ready", function() {
+// Initialize total posts counter
+let totalPosts = 0;
+
+// Initialize a timeout variable for debouncing totalPosts display
+let totalPostsTimeout = null;
+
+board.on("ready", function () {
   // Firebase
   const db = getFirestore();
 
@@ -27,11 +34,8 @@ board.on("ready", function() {
   const display = new HT16K33Display(this);
 
   // Optionally set initial blink rate and brightness
-  display.setBlinkRate(HT16K33Display.BLINK_OFF); // No blink
+  display.setBlinkRate(HT16K33.BLINK_OFF); // No blink
   display.setBrightness(15); // Maximum brightness
-
-  // Initialize total posts counter
-  let totalPosts = 0;
 
   // Initialize and configure the Photoresistor
   const photoresistor = new Photoresistor(this, {
@@ -97,9 +101,20 @@ board.on("ready", function() {
           led.off();
         }, 250);
 
-        // Update the display with the total number of posts
-        // Convert totalPosts to string and pad to 4 characters
-        display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false]);
+        // Display timesSeen with DP on the fourth digit
+        display.writeText(`${timesSeen}`.padStart(4, ' '), [false, false, false, true]);
+
+        // Debounce the totalPosts display
+        // If a timeout is already set, clear it
+        if (totalPostsTimeout) {
+          clearTimeout(totalPostsTimeout);
+        }
+
+        // Set a new timeout to display totalPosts after 250ms
+        totalPostsTimeout = setTimeout(() => {
+          display.writeText(`${totalPosts}`.padStart(4, ' '), [false, false, false, false]);
+          totalPostsTimeout = null; // Reset the timeout variable
+        }, 250);
       });
     }, (error) => {
       console.error(chalk.red('Error fetching documents: '), error);
