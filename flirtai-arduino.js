@@ -2,8 +2,13 @@ const five = require("johnny-five");
 const admin = require("firebase-admin");
 const { getFirestore } = require('firebase-admin/firestore');
 const chalk = require('chalk');  // Importing chalk for colored output
-const HT16K33Display = require('./ht16k33'); // Import the display class
+
+const HT16K33Display = require('./ht16k33');      // Import the display class
 const Photoresistor = require('./photoresistor'); // Import the photoresistor class
+
+const fs = require('fs');          // For file operations
+const path = require('path');      // For handling file paths
+const cron = require('node-cron'); // For scheduling tasks
 
 const serviceAccount = require("./flirtai-service-firebase-adminsdk-1tszc-f7568c9c13.json");
 
@@ -15,7 +20,7 @@ admin.initializeApp({
 const board = new five.Board();
 
 // Object to store how many times each userId has been seen
-const userCount = {};
+let userCount = {};
 
 // Initialize total posts counter
 let totalPosts = 0;
@@ -28,6 +33,14 @@ let alternateInterval = null;
 
 // Flag to track current display state
 let showingTotalPosts = true;
+
+// Define the directory to save log files
+const logsDir = path.join(__dirname, 'logs');
+
+// Ensure the logs directory exists; if not, create it
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 board.on("ready", function () {
   // Firebase
@@ -146,6 +159,44 @@ board.on("ready", function () {
     }, (error) => {
       console.error(chalk.red('Error fetching documents: '), error);
     });
+
+  // Schedule a task to run every day at midnight
+  cron.schedule('0 0 * * *', () => {
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const timestamp = currentDate.toISOString();
+
+    // Calculate total number of unique users
+    const userCountTotal = Object.keys(userCount).length;
+
+    // Prepare JSON data
+    const logData = {
+      date: timestamp,
+      totalUsers: userCountTotal,
+      totalPosts: totalPosts,
+      userCounts: userCount
+    };
+
+    // Define filename with date
+    const filename = `log-${formattedDate}.json`;
+    const filePath = path.join(logsDir, filename);
+
+    // Write JSON data to file
+    fs.writeFile(filePath, JSON.stringify(logData, null, 2), (err) => {
+      if (err) {
+        console.error(chalk.red(`Error writing log file: ${err.message}`));
+      } else {
+        console.log(chalk.green(`Log file saved: ${filename}`));
+      }
+    });
+
+    // Reset userCount and totalPosts
+    userCount = {};
+    totalPosts = 0;
+
+    // Reset the display
+    display.clearDisplay();
+  });
 
   // Optional: Handle process exit to clean up resources
   process.on('SIGINT', () => {

@@ -3,13 +3,14 @@
     "chalk": "^4.1.2",
     "firebase-admin": "^12.4.0",
     "johnny-five": "^2.1.0",
+    "node-cron": "^3.0.3",
     "node-led": "^0.3.1",
     "serialport": "^9.2.8"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
-  },  
+  },
   "scripts": {
-    "start": "nodemon ht16k33.js" 
+    "start": "nodemon ht16k33.js"
   }
 }
