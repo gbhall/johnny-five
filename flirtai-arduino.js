@@ -184,9 +184,9 @@ board.on("ready", function () {
     // Write JSON data to file
     fs.writeFile(filePath, JSON.stringify(logData, null, 2), (err) => {
       if (err) {
-        console.error(chalk.red(`Error writing log file: ${err.message}`));
+        console.error(chalk.red.bold(`Error writing log file: ${err.message}`));
       } else {
-        console.log(chalk.green(`Log file saved: ${filename}`));
+        console.log(chalk.green.bold(`Log file saved: ${filename}`));
       }
     });
 
