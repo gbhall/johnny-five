@@ -47,8 +47,8 @@ This **HT16K33 Display Library** is a JavaScript module designed to interface wi
 1. **Clone the Repository:**
    
    ```bash
-   git clone https://github.com/gbhall/arduino-flirtai.git
-   cd arduino-flirtai
+   git clone https://github.com/gbhall/johnny-five.git
+   cd johnny-five
    ```
 
 2. **Install Dependencies:**
