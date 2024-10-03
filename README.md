@@ -1,8 +1,8 @@
 # HT16K33 Display Library
 
 ## Table of Contents
-- [Author](#author)
 - [Introduction](#introduction)
+- [Author](#author)
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -23,13 +23,13 @@
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
-## Author
-
-**Gareth Blake Hall**
-
 ## Introduction
 
 This **HT16K33 Display Library** is a JavaScript module designed to interface with the **HT16K33 Quad 14 Segment Alphanumeric Display Module** using the [Johnny-Five](https://github.com/rwaldron/johnny-five) robotics and IoT library. This library provides a class-based structure to easily control and manipulate the display, offering functionalities such as setting blink rates, adjusting brightness, displaying characters and text, scrolling messages, and clearing the display.
+
+## Author
+
+**Gareth Blake Hall**
 
 ## Features
 
