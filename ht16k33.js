@@ -1,3 +1,12 @@
+/**
+ * HT16K33Display Library
+ * 
+ * Author: Gareth Blake Hall
+ * GitHub: https://github.com/gbhall
+ * 
+ * This library provides functionalities to control the HT16K33 Quad 14 Segment Alphanumeric Display Module.
+ */
+
 const { bitmaps, HT16K33, ALPHANUM_SEGMENTS } = require('./bitmap.js'); // Import all exports
 
 /**
