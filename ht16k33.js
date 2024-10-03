@@ -256,9 +256,9 @@ class HT16K33Display {
     const clearAll = [
       0x00,       // Starting register address
       0x00, 0x00, // Display 0: All segments and DP off
-      0x02, 0x00, // Display 1: All segments and DP off
-      0x04, 0x00, // Display 2: All segments and DP off
-      0x06, 0x00  // Display 3: All segments and DP off
+      0x00, 0x00, // Display 1: All segments and DP off
+      0x00, 0x00, // Display 2: All segments and DP off
+      0x00, 0x00  // Display 3: All segments and DP off
     ];
     this.board.i2cWrite(address, clearAll);
     console.log('Display Cleared');
