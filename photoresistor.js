@@ -5,6 +5,9 @@ const five = require('johnny-five');
  *
  * This class encapsulates all functionalities required to monitor a photoresistor sensor.
  * It listens to sensor data and performs actions based on the sensor readings.
+ * 
+ * Author: Gareth Blake Hall
+ * GitHub: https://github.com/gbhall
  */
 class Photoresistor {
   /**
